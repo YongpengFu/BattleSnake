@@ -40,6 +40,11 @@ def end(game_state: typing.Dict):
     print("GAME OVER\n")
 
 
+# Calculating Manhattan Distance between 2 points
+def manhattan_distance(point1, point2):
+    return sum(abs(value1 - value2) for value1, value2 in zip(point1, point2))
+
+
 # move is called on every turn and returns your next move
 # Valid moves are "up", "down", "left", or "right"
 # See https://docs.battlesnake.com/api/example-move for available data
@@ -129,7 +134,29 @@ def move(game_state: typing.Dict) -> typing.Dict:
     next_move = random.choice(safe_moves)
 
     # TODO: Step 4 - Move towards food instead of random, to regain health and survive longer
-    # food = game_state['board']['food']
+    food = game_state['board']['food']
+    min_distance = board_width + board_height
+    min_food = {'x': 0, 'y': 0}
+    for food_coordinate in food:
+        to_distance = manhattan_distance(
+            my_head.values(), food_coordinate.values())
+        if to_distance < min_distance:
+            min_distance = to_distance
+            min_food = food_coordinate
+
+    better_moves = []
+    if ("left" in safe_moves and my_head['x'] > min_food['x']):
+        better_moves.append("left")
+    if ("right" in safe_moves and my_head['x'] < min_food['x']):
+        better_moves.append("right")
+    if ("up" in safe_moves and my_head['y'] < min_food['y']):
+        better_moves.append("up")
+    if ("down" in safe_moves and my_head['y'] > min_food['y']):
+        better_moves.append("down")
+
+    if len(better_moves) != 0:
+        # dont do this when there is a head to head collision and you know you will lose
+        next_move = random.choice(better_moves)
 
     print(f"MOVE {game_state['turn']}: {next_move}")
     return {"move": next_move}
