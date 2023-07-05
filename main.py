@@ -12,7 +12,6 @@
 
 import random
 import typing
-import numpy as np
 
 
 # info is called when you create your Battlesnake on play.battlesnake.com
@@ -43,6 +42,19 @@ def end(game_state: typing.Dict):
 # Calculating Manhattan Distance between 2 points
 def manhattan_distance(point1, point2):
     return sum(abs(value1 - value2) for value1, value2 in zip(point1, point2))
+
+# Find the neighboring coordinate
+
+
+def is_snake_neighbor(youSnake, min_food, opponentsNotYou):
+    if (manhattan_distance(youSnake['head'].values(), min_food.values()) == 1):
+        food_pointX, food_pointY = min_food.values()
+        neighbor_coordinate = [(food_pointX-1, food_pointY), (food_pointX+1, food_pointY),
+                               (food_pointX, food_pointY-1), (food_pointX, food_pointY+1)]
+        for opponent in opponentsNotYou:
+            if tuple(opponent["head"].values()) in neighbor_coordinate and opponent["length"] >= youSnake['length']:
+                return True
+    return False
 
 
 # move is called on every turn and returns your next move
@@ -105,8 +117,9 @@ def move(game_state: typing.Dict) -> typing.Dict:
 
     # TODO: Step 3 - Prevent your Battlesnake from colliding with other Battlesnakes
     opponents = game_state['board']['snakes']
-    opponentsNotYouBody = [opponent['body'] for opponent in opponents if opponent['id']
-                           != youSnake['id']]
+    opponentsNotYou = [
+        opponent for opponent in opponents if opponent['id'] != youSnake['id']]
+    opponentsNotYouBody = [opponent['body'] for opponent in opponentsNotYou]
     opponentsNotYouBody = [
         item for sublist in opponentsNotYouBody for item in sublist]
 
@@ -156,7 +169,14 @@ def move(game_state: typing.Dict) -> typing.Dict:
 
     if len(better_moves) != 0:
         # dont do this when there is a head to head collision and you know you will lose
-        next_move = random.choice(better_moves)
+        if len(better_moves) == 1:
+            if not is_snake_neighbor(youSnake, min_food, opponentsNotYou):
+                next_move = better_moves[0]
+            else:
+                safe_moves.remove(better_moves[0])
+                next_move = random.choice(safe_moves)
+        else:
+            next_move = random.choice(better_moves)
 
     print(f"MOVE {game_state['turn']}: {next_move}")
     return {"move": next_move}
