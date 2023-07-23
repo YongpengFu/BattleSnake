@@ -71,6 +71,38 @@ def is_snake_too_close(youSnake, safe_move, opponentsNotYou):
                     return (youSnake['head']['x'] - opponent["head"]['x'] < 0)
                 else:
                     return (youSnake['head']['y'] - opponent["head"]['y'] < 0)
+            else:
+                if safe_move == "left":
+                    if (youSnake['head']['x'] - opponent["head"]['x'] > 0):
+                        return "left"
+                elif safe_move == "down":
+                    if (youSnake['head']['y'] - opponent["head"]['y'] > 0):
+                        return "down"
+                elif safe_move == "right":
+                    if (youSnake['head']['x'] - opponent["head"]['x'] < 0):
+                        return "right"
+                else:
+                    if (youSnake['head']['y'] - opponent["head"]['y'] < 0):
+                        return "up"
+    return False
+
+# if there is only 2 snakes on board now, you may want to attack this snake
+
+
+def is_last_2_snakes(youSnake, safe_move, opponentsNotYou):
+    if (len(opponentsNotYou) == 1) and (opponentsNotYou[0]["length"] < youSnake['length']):
+        if safe_move == "left":
+            if (youSnake['head']['x'] > opponentsNotYou[0]['head']['x']):
+                return True
+        elif safe_move == "down":
+            if (youSnake['head']['y'] > opponentsNotYou[0]['head']['y']):
+                return True
+        elif safe_move == "right":
+            if (youSnake['head']['x'] < opponentsNotYou[0]['head']['x']):
+                return True
+        else:
+            if (youSnake['head']['y'] < opponentsNotYou[0]['head']['y']):
+                return True
     return False
 
 
@@ -140,14 +172,50 @@ def move(game_state: typing.Dict) -> typing.Dict:
     opponentsNotYouBody = [
         item for sublist in opponentsNotYouBody for item in sublist]
 
-    if (is_move_safe["left"] and ({"x": my_head["x"]-1, "y": my_head["y"]} in opponentsNotYouBody) or is_snake_too_close(youSnake, "left", opponentsNotYou)):
-        is_move_safe["left"] = False
-    if (is_move_safe["right"] and ({"x": my_head["x"]+1, "y": my_head["y"]} in opponentsNotYouBody) or is_snake_too_close(youSnake, "right", opponentsNotYou)):
-        is_move_safe["right"] = False
-    if (is_move_safe["up"] and ({"x": my_head["x"], "y": my_head["y"]+1} in opponentsNotYouBody) or is_snake_too_close(youSnake, "up", opponentsNotYou)):
-        is_move_safe["up"] = False
-    if (is_move_safe["down"] and ({"x": my_head["x"], "y": my_head["y"]-1} in opponentsNotYouBody) or is_snake_too_close(youSnake, "down", opponentsNotYou)):
-        is_move_safe["down"] = False
+    if (is_move_safe["left"]):
+        if ({"x": my_head["x"]-1, "y": my_head["y"]} in opponentsNotYouBody):
+            is_move_safe["left"] = False
+        else:
+            result_is_snake_too_close = is_snake_too_close(
+                youSnake, "left", opponentsNotYou)
+            if isinstance(result_is_snake_too_close, int):
+                if result_is_snake_too_close:
+                    is_move_safe["left"] = False
+            else:
+                return {"move": "left"}
+    if (is_move_safe["right"]):
+        if ({"x": my_head["x"]+1, "y": my_head["y"]} in opponentsNotYouBody):
+            is_move_safe["right"] = False
+        else:
+            result_is_snake_too_close = is_snake_too_close(
+                youSnake, "right", opponentsNotYou)
+            if isinstance(result_is_snake_too_close, int):
+                if result_is_snake_too_close:
+                    is_move_safe["right"] = False
+            else:
+                return {"move": "right"}
+    if (is_move_safe["up"]):
+        if ({"x": my_head["x"], "y": my_head["y"]+1} in opponentsNotYouBody):
+            is_move_safe["up"] = False
+        else:
+            result_is_snake_too_close = is_snake_too_close(
+                youSnake, "up", opponentsNotYou)
+            if isinstance(result_is_snake_too_close, int):
+                if result_is_snake_too_close:
+                    is_move_safe["up"] = False
+            else:
+                return {"move": "up"}
+    if (is_move_safe["down"]):
+        if ({"x": my_head["x"], "y": my_head["y"]-1} in opponentsNotYouBody):
+            is_move_safe["down"] = False
+        else:
+            result_is_snake_too_close = is_snake_too_close(
+                youSnake, "down", opponentsNotYou)
+            if isinstance(result_is_snake_too_close, int):
+                if result_is_snake_too_close:
+                    is_move_safe["down"] = False
+            else:
+                return {"move": "down"}
 
     # Are there any safe moves left?
     safe_moves = []
@@ -175,18 +243,30 @@ def move(game_state: typing.Dict) -> typing.Dict:
             min_food = food_coordinate
 
     better_moves = []
-    if ("left" in safe_moves and my_head['x'] > min_food['x']):
-        better_moves.append("left")
-    if ("right" in safe_moves and my_head['x'] < min_food['x']):
-        better_moves.append("right")
-    if ("up" in safe_moves and my_head['y'] < min_food['y']):
-        better_moves.append("up")
-    if ("down" in safe_moves and my_head['y'] > min_food['y']):
-        better_moves.append("down")
+    if ("left" in safe_moves):
+        if my_head['x'] > min_food['x']:
+            better_moves.append("left")
+        if is_last_2_snakes(youSnake, "left", opponentsNotYou):
+            return {"move": "left"}
+    if ("right" in safe_moves):
+        if my_head['x'] < min_food['x']:
+            better_moves.append("right")
+        if is_last_2_snakes(youSnake, "right", opponentsNotYou):
+            return {"move": "right"}
+    if ("up" in safe_moves):
+        if my_head['y'] < min_food['y']:
+            better_moves.append("up")
+        if is_last_2_snakes(youSnake, "up", opponentsNotYou):
+            return {"move": "up"}
+    if ("down" in safe_moves):
+        if my_head['y'] > min_food['y']:
+            better_moves.append("down")
+        if is_last_2_snakes(youSnake, "down", opponentsNotYou):
+            return {"move": "down"}
 
     if len(better_moves) != 0:
         # dont do this when there is a head to head collision and you know you will lose, more to come
-        if len(better_moves) == 1:
+        if len(set(better_moves)) == 1:
             if not is_snake_neighbor(youSnake, min_food, opponentsNotYou):
                 next_move = better_moves[0]
             else:
