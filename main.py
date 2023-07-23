@@ -22,7 +22,7 @@ def info() -> typing.Dict:
 
     return {
         "apiversion": "1",
-        "author": "YongBattleSnake",  # TODO: Your Battlesnake Username
+        "author": "Nagini",  # TODO: Your Battlesnake Username
         "color": "#736CCB",  # TODO: Choose color
         "head": "beluga",  # TODO: Choose head
         "tail": "curled",  # TODO: Choose tail
@@ -54,6 +54,23 @@ def is_snake_neighbor(youSnake, min_food, opponentsNotYou):
         for opponent in opponentsNotYou:
             if tuple(opponent["head"].values()) in neighbor_coordinate and opponent["length"] >= youSnake['length']:
                 return True
+    return False
+
+# If your neignbor snake is 2 manhattan distance away from you, be cautious
+
+
+def is_snake_too_close(youSnake, safe_move, opponentsNotYou):
+    for opponent in opponentsNotYou:
+        if manhattan_distance(youSnake['head'].values(), opponent["head"].values()) == 2:
+            if (opponent["length"] >= youSnake['length']):
+                if safe_move == "left":
+                    return (youSnake['head']['x'] - opponent["head"]['x'] > 0)
+                elif safe_move == "down":
+                    return (youSnake['head']['y'] - opponent["head"]['y'] > 0)
+                elif safe_move == "right":
+                    return (youSnake['head']['x'] - opponent["head"]['x'] < 0)
+                else:
+                    return (youSnake['head']['y'] - opponent["head"]['y'] < 0)
     return False
 
 
@@ -123,13 +140,13 @@ def move(game_state: typing.Dict) -> typing.Dict:
     opponentsNotYouBody = [
         item for sublist in opponentsNotYouBody for item in sublist]
 
-    if (is_move_safe["left"] and {"x": my_head["x"]-1, "y": my_head["y"]} in opponentsNotYouBody):
+    if (is_move_safe["left"] and ({"x": my_head["x"]-1, "y": my_head["y"]} in opponentsNotYouBody) or is_snake_too_close(youSnake, "left", opponentsNotYou)):
         is_move_safe["left"] = False
-    if (is_move_safe["right"] and {"x": my_head["x"]+1, "y": my_head["y"]} in opponentsNotYouBody):
+    if (is_move_safe["right"] and ({"x": my_head["x"]+1, "y": my_head["y"]} in opponentsNotYouBody) or is_snake_too_close(youSnake, "right", opponentsNotYou)):
         is_move_safe["right"] = False
-    if (is_move_safe["up"] and {"x": my_head["x"], "y": my_head["y"]+1} in opponentsNotYouBody):
+    if (is_move_safe["up"] and ({"x": my_head["x"], "y": my_head["y"]+1} in opponentsNotYouBody) or is_snake_too_close(youSnake, "up", opponentsNotYou)):
         is_move_safe["up"] = False
-    if (is_move_safe["down"] and {"x": my_head["x"], "y": my_head["y"]-1} in opponentsNotYouBody):
+    if (is_move_safe["down"] and ({"x": my_head["x"], "y": my_head["y"]-1} in opponentsNotYouBody) or is_snake_too_close(youSnake, "down", opponentsNotYou)):
         is_move_safe["down"] = False
 
     # Are there any safe moves left?
@@ -168,7 +185,7 @@ def move(game_state: typing.Dict) -> typing.Dict:
         better_moves.append("down")
 
     if len(better_moves) != 0:
-        # dont do this when there is a head to head collision and you know you will lose
+        # dont do this when there is a head to head collision and you know you will lose, more to come
         if len(better_moves) == 1:
             if not is_snake_neighbor(youSnake, min_food, opponentsNotYou):
                 next_move = better_moves[0]
