@@ -90,19 +90,20 @@ def is_snake_too_close(youSnake, safe_move, opponentsNotYou):
 
 
 def is_last_2_snakes(youSnake, safe_move, opponentsNotYou):
-    if (len(opponentsNotYou) == 1) and (opponentsNotYou[0]["length"] < youSnake['length']):
-        if safe_move == "left":
-            if (youSnake['head']['x'] > opponentsNotYou[0]['head']['x']):
-                return True
-        elif safe_move == "down":
-            if (youSnake['head']['y'] > opponentsNotYou[0]['head']['y']):
-                return True
-        elif safe_move == "right":
-            if (youSnake['head']['x'] < opponentsNotYou[0]['head']['x']):
-                return True
-        else:
-            if (youSnake['head']['y'] < opponentsNotYou[0]['head']['y']):
-                return True
+    if (youSnake["health"] >= 40):
+        if (len(opponentsNotYou) == 1) and (opponentsNotYou[0]["length"] < youSnake['length']):
+            if safe_move == "left":
+                if (youSnake['head']['x'] > opponentsNotYou[0]['head']['x']):
+                    return True
+            elif safe_move == "down":
+                if (youSnake['head']['y'] > opponentsNotYou[0]['head']['y']):
+                    return True
+            elif safe_move == "right":
+                if (youSnake['head']['x'] < opponentsNotYou[0]['head']['x']):
+                    return True
+            else:
+                if (youSnake['head']['y'] < opponentsNotYou[0]['head']['y']):
+                    return True
     return False
 
 
@@ -242,26 +243,28 @@ def move(game_state: typing.Dict) -> typing.Dict:
             min_distance = to_distance
             min_food = food_coordinate
 
+    which_turn = game_state['turn']
+
     better_moves = []
     if ("left" in safe_moves):
         if my_head['x'] > min_food['x']:
             better_moves.append("left")
-        if is_last_2_snakes(youSnake, "left", opponentsNotYou):
+        if is_last_2_snakes(youSnake, "left", opponentsNotYou) and which_turn % 2 == 0:
             return {"move": "left"}
     if ("right" in safe_moves):
         if my_head['x'] < min_food['x']:
             better_moves.append("right")
-        if is_last_2_snakes(youSnake, "right", opponentsNotYou):
+        if is_last_2_snakes(youSnake, "right", opponentsNotYou) and which_turn % 2 == 0:
             return {"move": "right"}
     if ("up" in safe_moves):
         if my_head['y'] < min_food['y']:
             better_moves.append("up")
-        if is_last_2_snakes(youSnake, "up", opponentsNotYou):
+        if is_last_2_snakes(youSnake, "up", opponentsNotYou) and which_turn % 2 == 0:
             return {"move": "up"}
     if ("down" in safe_moves):
         if my_head['y'] > min_food['y']:
             better_moves.append("down")
-        if is_last_2_snakes(youSnake, "down", opponentsNotYou):
+        if is_last_2_snakes(youSnake, "down", opponentsNotYou) and which_turn % 2 == 0:
             return {"move": "down"}
 
     if len(better_moves) != 0:
